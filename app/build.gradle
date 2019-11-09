@@ -4,25 +4,54 @@ plugins {
 apply plugin: 'com.android.application'
 apply plugin: 'org.ajoberstar.grgit'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
+    signingConfigs {
+        config {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
     defaultConfig {
         applicationId "com.artisanter.versionapp"
         minSdkVersion 23
         targetSdkVersion 29
-        def minor = "${grgit.open(currentDir: rootDir).tag.list().size - 1}"
-        def headPatch = "${grgit.log(includes: ['HEAD']).size()}"
-        def tagPatch = "${grgit.log(includes: [grgit.describe(tags: true).split('-')[0]]).size()}"
-        int patch = headPatch.toInteger() - tagPatch.toInteger()
-        versionCode patch + minor.toInteger() * 1000
-        versionName "1.${minor}.${patch}"
+
+        def describe = "${grgit.open(currentDir: rootDir).describe(tags: true)}"
+        def codes = describe.split("-|\\.")
+
+        int major = codes[0].toInteger()
+        int minor = codes[1].toInteger()
+        int patch = codes[2].toInteger()
+
+        versionCode patch + minor * 1000 + major * 10000000
+        versionName "${major}.${minor}.${patch}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    flavorDimensions "version"
+    productFlavors {
+        normal {
+            dimension "version"
+            applicationIdSuffix ".main"
+            versionNameSuffix "-main"
+        }
+        green {
+            dimension "version"
+            applicationIdSuffix ".green"
+            versionNameSuffix "-green"
         }
     }
 }

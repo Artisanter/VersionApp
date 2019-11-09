@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showDialog(){AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Attention!")
-                .setMessage("Press Yes!")
+                .setMessage("This application requires permission to display your device ID")
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener(){
                     public void onClick(DialogInterface dialog, int id){
                         requestPermission(PERMISSION, PERMISSION_CODE);
